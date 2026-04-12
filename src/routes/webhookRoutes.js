@@ -1,6 +1,3 @@
-// =============================
-// src/routes/webhookRoutes.js
-// =============================
 const express = require("express");
 const router = express.Router();
 
@@ -8,23 +5,25 @@ const supabase = require("../config/supabase");
 const { sendWhatsApp } = require("../services/twilioService");
 const { getResponse } = require("../services/botService");
 
-// 🔍 ROTA TESTE (Acessível em GET /whatsapp/)
+// 🔍 ROTA TESTE (Acessível em GET /)
 router.get("/", (req, res) => {
   res.send("✅ Webhook ativo!");
 });
 
-// ✅ CORREÇÃO: Alterado de "/twilio" para "/webhook"
-// Agora esta rota responde em: POST /whatsapp/webhook
-router.post("services/twilioService", async (req, res) => {
+// ✅ CORREÇÃO: Nome da rota simplificado para "/webhook"
+// Se no server.js você usar app.use("/whatsapp", webhookRoutes), 
+// a URL final será: https://backendwandersonweb.onrender.com/whatsapp/webhook
+router.post("/webhook", async (req, res) => {
   try {
-    // ⚠️ Twilio envia como form-urlencoded (Verifique se app.use(express.urlencoded) está no index.js)
     const Body = req.body.Body;
     const From = req.body.From;
 
     if (!Body || !From) {
-      console.warn("Body ou From ausente:", req.body);
+      console.warn("⚠️ Body ou From ausente no payload do Twilio.");
       return res.sendStatus(400);
     }
+
+    console.log(`📩 Mensagem recebida de ${From}: ${Body}`);
 
     // 🔍 busca lead
     let { data: lead, error } = await supabase
@@ -34,8 +33,7 @@ router.post("services/twilioService", async (req, res) => {
       .maybeSingle();
 
     if (error) {
-      console.error("Erro ao buscar lead:", error.message);
-      return res.sendStatus(500);
+      console.error("❌ Erro ao buscar lead no Supabase:", error.message);
     }
 
     // ➕ cria lead se não existir
@@ -47,38 +45,32 @@ router.post("services/twilioService", async (req, res) => {
         .single();
 
       if (insertError) {
-        console.error("Erro ao criar lead:", insertError.message);
-        return res.sendStatus(500);
+        console.error("❌ Erro ao criar lead:", insertError.message);
+      } else {
+        lead = data;
       }
-
-      lead = data;
     }
 
     // 💬 salva mensagem recebida
-    const { error: inboundError } = await supabase
-      .from("inbound_messages")
-      .insert([
+    if (lead) {
+      await supabase.from("inbound_messages").insert([
         {
           lead_id: lead.id,
           mensagem: Body,
           from_number: From
         }
       ]);
-
-    if (inboundError) {
-      console.error("Erro ao salvar inbound:", inboundError.message);
     }
 
     // 🤖 resposta do bot
-    const resposta = getResponse(Body, lead.nome || "cliente");
+    const resposta = getResponse(Body, (lead && lead.nome) ? lead.nome : "cliente");
 
     // 📲 envia WhatsApp via Twilio
     await sendWhatsApp(From, resposta);
 
     // 📊 salva interação
-    const { error: interactionError } = await supabase
-      .from("interactions")
-      .insert([
+    if (lead) {
+      await supabase.from("interactions").insert([
         {
           lead_id: lead.id,
           canal: "whatsapp",
@@ -86,16 +78,13 @@ router.post("services/twilioService", async (req, res) => {
           status: "enviado"
         }
       ]);
-
-    if (interactionError) {
-      console.error("Erro ao salvar interação:", interactionError.message);
     }
 
-    // ✅ Twilio precisa de resposta rápida (Status 200)
+    // ✅ IMPORTANTE: Twilio espera uma resposta rápida
     return res.status(200).send("OK");
 
   } catch (err) {
-    console.error("Erro geral webhook:", err.message);
+    console.error("💥 Erro geral no webhook:", err.message);
     return res.sendStatus(500);
   }
 });

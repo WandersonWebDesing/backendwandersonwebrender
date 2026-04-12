@@ -12,7 +12,7 @@ const app = express();
 // ================================
 // 🔧 MIDDLEWARES
 // ================================
-// IMPORTANTE: Twilio envia dados como urlencoded. Isso é vital!
+// Essencial: Twilio envia dados como x-www-form-urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -22,14 +22,14 @@ app.use(express.urlencoded({ extended: true }));
 const webhookRoutes = require("./src/routes/webhookRoutes");
 const googleRoutes = require("./src/routes/googleAuth");
 
-// Registrando as rotas
-app.use(webhookRoutes);
-app.use(googleRoutes);
+// Definindo prefixos claros para as rotas
+// Isso ajuda a evitar conflitos e organiza sua URL
+app.use("/whatsapp", webhookRoutes); 
+app.use("/auth", googleRoutes);
 
 // ================================
 // 🧪 ROTA TESTE (Raiz)
 // ================================
-// Mudei para .all para aceitar GET (navegador) e POST (testes)
 app.all("/", (req, res) => {
   res.send("🔥 API WandersonWeb rodando e ativa!");
 });
@@ -39,7 +39,7 @@ app.all("/", (req, res) => {
 // ================================
 const PORT = process.env.PORT || 4001;
 
-// Adicionado '0.0.0.0' para garantir que o Render exponha a porta corretamente
-app.listen(PORT, '0.0.0.0', () => {
+// '0.0.0.0' é obrigatório para o Render conseguir mapear a porta externa
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
