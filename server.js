@@ -3,27 +3,27 @@ const app = express();
 
 app.use(express.urlencoded({ extended: false }));
 
+// ✅ ROTA PRINCIPAL (resolve seu erro)
+app.get('/', (req, res) => {
+    res.send('🚀 API WandersonWeb ONLINE!');
+});
+
+// webhook Twilio
 app.post('/webhook', (req, res) => {
-    const msg = req.body.Body;
-    const from = req.body.From;
+    const mensagem = req.body.Body;
 
-    console.log("Mensagem recebida:", msg);
-    console.log("De:", from);
-
-    // resposta simples (SEM HubSpot ainda)
-    const response = `
+    const twiml = `
         <Response>
-            <Message>
-                Olá! 👋 Recebemos sua mensagem: "${msg}"
-                Em breve vamos te atender 🚀
-            </Message>
+            <Message>Recebido: ${mensagem}</Message>
         </Response>
     `;
 
     res.set('Content-Type', 'text/xml');
-    res.send(response);
+    res.send(twiml);
 });
 
-app.listen(4001, () => {
-    console.log('🚀 Servidor rodando na porta 4001');
+const PORT = process.env.PORT || 4001;
+
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
