@@ -1,34 +1,60 @@
 const express = require('express');
 const app = express();
 
-// 🔹 middleware (OBRIGATÓRIO antes das rotas)
+// 🔹 middleware
 app.use(express.urlencoded({ extended: false }));
 
-// 🔹 rota principal (teste no navegador)
+// 🔹 "memória simples" (temporário)
+const usuarios = {};
+
+// 🔹 rota teste
 app.get('/', (req, res) => {
     res.send('🚀 API WandersonWeb ONLINE!');
 });
 
-// 🔥 👉 COLOQUE SEU WEBHOOK AQUI (EXATAMENTE AQUI)
+// 🔥 webhook
 app.post('/webhook', (req, res) => {
-    const msg = req.body.Body.toLowerCase();
+    const telefone = req.body.From;
+    const msg = req.body.Body.trim().toLowerCase();
 
     let resposta = '';
 
-    if (msg.includes('oi') || msg.includes('olá')) {
-        resposta = '👋 Olá! Bem-vindo à WandersonWeb.\nDigite:\n👉 preço\n👉 serviço\n👉 contratar';
-    } 
-    else if (msg.includes('preço')) {
-        resposta = '💰 Nossos serviços começam em R$97.\nQuer ver as opções?';
-    } 
-    else if (msg.includes('serviço')) {
-        resposta = '🚀 Oferecemos:\n- Criação de Sites\n- Bots WhatsApp\n- Automação de vendas';
-    } 
-    else if (msg.includes('contratar')) {
-        resposta = '🔥 Perfeito! Vou te direcionar para atendimento agora.';
-    } 
-    else {
-        resposta = '🤖 Não entendi.\nDigite:\n👉 preço\n👉 serviço\n👉 contratar';
+    // 🔹 se não tem usuário ainda
+    if (!usuarios[telefone]) {
+        usuarios[telefone] = { etapa: 'nome' };
+        resposta = '👋 Olá! Bem-vindo à WandersonWeb.\n\n✨ Qual seu nome?';
+    }
+
+    // 🔹 etapa: capturar nome
+    else if (usuarios[telefone].etapa === 'nome') {
+        usuarios[telefone].nome = msg;
+        usuarios[telefone].etapa = 'menu';
+
+        resposta = `🤝 Prazer, ${msg}!\n\nEscolha uma opção:\n\n1️⃣ Foto\n2️⃣ Vídeo\n3️⃣ WhatsBot\n4️⃣ Site\n5️⃣ Pacote de Marketing`;
+    }
+
+    // 🔹 etapa: menu
+    else if (usuarios[telefone].etapa === 'menu') {
+        const nome = usuarios[telefone].nome;
+
+        if (msg === '1') {
+            resposta = `📸 ${nome}, nossas artes e fotos profissionais aumentam seu engajamento!\n💰 A partir de R$97`;
+        } 
+        else if (msg === '2') {
+            resposta = `🎬 ${nome}, vídeos que vendem e geram autoridade!\n💰 A partir de R$147`;
+        } 
+        else if (msg === '3') {
+            resposta = `🤖 ${nome}, WhatsBot automático para vender 24h!\n🔥 Ideal para negócios locais`;
+        } 
+        else if (msg === '4') {
+            resposta = `🌐 ${nome}, criamos sites modernos e rápidos!\n🚀 Perfeito para captar clientes`;
+        } 
+        else if (msg === '5') {
+            resposta = `📊 ${nome}, pacote completo de marketing!\n🔥 Estratégia + automação + vendas`;
+        } 
+        else {
+            resposta = `❌ Opção inválida, ${nome}.\n\nDigite:\n1️⃣ Foto\n2️⃣ Vídeo\n3️⃣ WhatsBot\n4️⃣ Site\n5️⃣ Marketing`;
+        }
     }
 
     res.set('Content-Type', 'text/xml');
@@ -39,7 +65,7 @@ app.post('/webhook', (req, res) => {
     `);
 });
 
-// 🔹 porta (SEMPRE no final)
+// 🔹 porta
 const PORT = process.env.PORT || 4001;
 
 app.listen(PORT, () => {
