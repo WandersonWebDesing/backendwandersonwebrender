@@ -30,7 +30,7 @@ app.post('/webhook', (req, res) => {
         usuarios[telefone].nome = msg;
         usuarios[telefone].etapa = 'menu';
 
-        resposta = `🤝 Prazer, ${msg}!\n\nEscolha uma opção:\n\n1️⃣ Foto\n2️⃣ Vídeo\n3️⃣ WhatsBot\n4️⃣ Site\n5️⃣ Pacote de Marketing`;
+        resposta = `🤝 Prazer, ${usuarios[telefone].nome}!\n\nEscolha uma opção:\n\n1️⃣ Foto\n2️⃣ Vídeo\n3️⃣ WhatsBot\n4️⃣ Site\n5️⃣ Pacote de Marketing\n6️⃣ 📍 Nossas Lojas (Localização)`;
     }
 
     // 🔹 etapa: menu
@@ -52,8 +52,16 @@ app.post('/webhook', (req, res) => {
         else if (msg === '5') {
             resposta = `📊 ${nome}, pacote completo de marketing!\n🔥 Estratégia + automação + vendas`;
         } 
+        else if (msg === '6') {
+            // ✅ Corrigido: Adicionado \n para pular linha e espaços nos links
+            resposta = `📍 *Nossas Unidades:*\n\n` +
+                       `🏢 *Arapoanga:* http://googleusercontent.com/maps.google.com/8\n\n` +
+                       `🚌 *Rodoviária:* http://googleusercontent.com/maps.google.com/9 (Box 15)\n\n` +
+                       `🎪 *Feira:* https://maps.google.com/?q=Rodoviaria\n\n0 (Roupas Box 51)\n\n` +
+                       `Estamos te esperando!`;
+        }
         else {
-            resposta = `❌ Opção inválida, ${nome}.\n\nDigite:\n1️⃣ Foto\n2️⃣ Vídeo\n3️⃣ WhatsBot\n4️⃣ Site\n5️⃣ Marketing`;
+            resposta = `❌ Opção inválida, ${nome}.\n\nDigite de 1 a 6 para escolher uma opção.`;
         }
     }
 
