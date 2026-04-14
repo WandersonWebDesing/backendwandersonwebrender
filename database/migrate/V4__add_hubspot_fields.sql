@@ -1,2 +1,0 @@
-ALTER TABLE leads
-ADD COLUMN hubspot_id VARCHAR(100);

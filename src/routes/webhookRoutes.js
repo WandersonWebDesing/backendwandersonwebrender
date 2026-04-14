@@ -36,21 +36,31 @@ router.post("/webhook", async (req, res) => {
       console.error("❌ Erro ao buscar lead no Supabase:", error.message);
     }
 
-    // ➕ cria lead se não existir
-    if (!lead) {
-      const { data, error: insertError } = await supabase
+// ➕ CRIAÇÃO DO LEAD (Substitua seu bloco antigo por este)
+if (!lead) {
+    // 1. Limpa o prefixo "whatsapp:" para evitar o erro de 'valor muito longo'
+    const numeroLimpo = From.replace("whatsapp:", ""); 
+
+    // 2. Tenta inserir no Supabase
+    const { data, error: insertError } = await supabase
         .from("leads")
-        .insert([{ nome: "", telefone: From }])
+        .insert([{ 
+            nome: "Lead via WhatsApp", 
+            telefone: numeroLimpo 
+            // Note que não enviamos o email aqui para evitar o erro de 'not-null'
+        }])
         .select()
         .single();
 
-      if (insertError) {
+    if (insertError) {
+        // Se cair aqui, você ainda precisa rodar o comando SQL no painel do Supabase
         console.error("❌ Erro ao criar lead:", insertError.message);
-      } else {
+    } else {
+        // Se deu certo, a variável lead recebe os dados e o fluxo continua
         lead = data;
-      }
+        console.log("✅ Lead criado com sucesso para o número:", numeroLimpo);
     }
-
+}
     // 💬 salva mensagem recebida
     if (lead) {
       await supabase.from("inbound_messages").insert([

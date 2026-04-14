@@ -1,6 +1,0 @@
-CREATE TABLE automations (
-    id SERIAL PRIMARY KEY,
-    trigger_event VARCHAR(50),
-    action VARCHAR(50),
-    delay_minutes INT
-);

@@ -1,3 +1,0 @@
-ALTER TABLE leads
-ADD COLUMN origem VARCHAR(50),
-ADD COLUMN campanha VARCHAR(100);
