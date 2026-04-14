@@ -1,8 +1,10 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "description": "Bot WhatsApp com Twilio + CRM",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
 
     "migrate:crm": "npx flyway migrate -configFiles=./crm.conf",
     "repair:crm": "npx flyway repair -configFiles=./crm.conf",
@@ -11,6 +13,9 @@
     "repair:auth": "npx flyway repair -configFiles=./auth.conf",
 
     "migrate:all": "npm run migrate:crm && npm run migrate:auth"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "node-flywaydb": "^3.0.7"
